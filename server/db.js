@@ -1,5 +1,6 @@
 const pg = require('pg');
 const uuid = require('uuid');
+const bcrypt = require('bcrypt');
 
 const client = new pg.Client(process.env.DATABASE_URL || 'postgres://localhost/acme_talent_gh_db');
 
@@ -11,7 +12,7 @@ const createTables = async()=> {
     CREATE TABLE users(
       id UUID PRIMARY KEY,
       username VARCHAR(20) UNIQUE NOT NULL,
-      password VARCHAR(20) NOT NULL
+      password VARCHAR(255) NOT NULL
     );
     CREATE TABLE skills(
       id UUID PRIMARY KEY,
@@ -33,7 +34,7 @@ const createUser = async({ username, password}) => {
     VALUES($1, $2, $3)
     RETURNING *
   `;
-  const response = await client.query(SQL, [uuid.v4(), username, password])
+  const response = await client.query(SQL, [uuid.v4(), username, await bcrypt.hash(password, 5)])
   return response.rows[0];
 }
 
